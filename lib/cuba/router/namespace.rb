@@ -18,7 +18,6 @@ class Cuba
         @name.to_s.downcase
       end
 
-
       def apply?(fragments, request)
         fragments.first == name
       end
@@ -31,11 +30,13 @@ class Cuba
         route_info
       end
 
-      def to_s
-        {class: self.class.to_s, name: name, module_name: module_name, content: content.map(&:to_s) }.to_s
+      def define_path_methods(controller, args={})
+        method_name = (args[:method_name] || []) + [name]
+        url = (args[:url] || []) + [name]
+        content.each do |route|
+          route.define_path_methods(controller, args.merge(method_name: method_name, url: url))
+        end
       end
-
-      private
 
     end
   end

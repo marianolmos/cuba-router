@@ -4,7 +4,8 @@ class Cuba
 
       attr_reader :content
 
-      def initialize(controller_name: nil, only: [], &block)
+      def initialize(name, controller_name: nil, only: [], &block)
+        @name = name
         @controller_name = controller_name
         @only = only
         @content = block_given? ? Container.load_routes(&block) : []
@@ -27,12 +28,24 @@ class Cuba
         route_info
       end
 
+      def define_path_methods(controller, args={})
+        method_name = (args[:method_name] || []) + [singular_name]
+        url = (args[:url] || []) + [":#{name_id}"]
+        content.each do |route|
+          route.define_path_methods(controller, args.merge(method_name: method_name, url: url))
+        end
+      end
+
       private
 
       def name_id
+        singular_name + '_id'
+      end
+
+      def singular_name
         id = @controller_name.gsub(/([A-Z])/, '_\1').downcase
         id[0] = ''
-        id + '_id'
+        id.gsub(/s$/, '')
       end
 
       def show

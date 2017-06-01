@@ -33,6 +33,9 @@ class Cuba
             route_info[:route_ids].each do |k, v|
               controller.define_singleton_method(k) { v }
             end
+            settings[:routes].each do |route|
+              route.define_path_methods(controller)
+            end
             controller.send(route_info[:action])
           end
         

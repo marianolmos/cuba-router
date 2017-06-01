@@ -24,7 +24,7 @@ class Cuba
           if name.empty?
             fragments.empty?
           elsif fragments.size == 1
-            fragments.first == name || name == '*'
+            fragments.first == name# || name == '*'
           end
         end
       end
@@ -35,14 +35,31 @@ class Cuba
         route_info
       end
 
+      def define_path_methods(controller, args={})
+        method_name = (args[:method_name] || []) + ['path']
+        method_name.unshift(name) unless name.empty?
+        url = (args[:url] || []) + [name]
+        define_method_to_controller(controller, args.merge(method_name: method_name, url: url))
+      end
+
       private
 
       def method_apply?(request)
         request.request_method.downcase.to_sym == @method
       end
 
-      def to_s
-        {class: self.class.to_s, name: name, controller_name: controller_name,  method: method}.to_s
+      def define_method_to_controller(controller, args)
+        method_name = args[:method_name].compact.reject(&:empty?).join('_').to_sym
+        url = args[:url].compact.reject(&:empty?).join('/')
+        return if controller.respond_to?(method_name)
+        #puts "defining: #{method_name} => (#{url})"
+        controller.define_singleton_method(method_name) do |args={}|
+          path = url
+          args.each do |k,v|
+            path = path.gsub(":#{k}", v.to_s)
+          end
+          path
+        end
       end
     end
   end

@@ -9,7 +9,7 @@ class Cuba
         @controller_name = controller_name
         @content = []
         unless (only & [:show, :update, :delete]).empty?
-          @content += [ ItemResource.new(controller_name: self.controller_name, only: only, &block) ]
+          @content += [ ItemResource.new(self.name, controller_name: self.controller_name, only: only, &block) ]
         end
         (only & [:index, :create]).each do |a_method|
           self.send(a_method)
@@ -24,10 +24,6 @@ class Cuba
         @controller_name || name.split('-').map(&:capitalize).join
       end
 
-      def to_s
-        {class: self.class.to_s, name: name, controller_name: controller_name, content: content.map(&:to_s)}.to_s
-      end
-
       def apply?(fragments, request)
         name == fragments.first
       end
@@ -36,6 +32,18 @@ class Cuba
         fragments.shift
         route_info[:controller_class] = controller_name + 'Controller'
         route_info
+      end
+
+      def define_path_methods(controller, args={})
+        method_name = (args[:method_name] || []) + [name]
+        url = (args[:url] || []) + [name]
+        content.each do |route|
+          if route.kind_of?(ItemResource)
+            route.define_path_methods(controller, args.merge(url: url))
+          else
+            route.define_path_methods(controller, args.merge(method_name: method_name, url: url))
+          end
+        end
       end
 
       private
