@@ -52,13 +52,18 @@ class Cuba
         method_name = args[:method_name].compact.reject(&:empty?).join('_').to_sym
         url = args[:url].compact.reject(&:empty?).join('/')
         return if controller.respond_to?(method_name)
-        #puts "defining: #{method_name} => (#{url})"
         controller.define_singleton_method(method_name) do |args={}|
           path = url
+          query_string = {}
           args.each do |k,v|
-            path = path.gsub(":#{k}", v.to_s)
+            if path.include? ":#{k}"
+              path = path.gsub(":#{k}", v.to_s)
+            else
+              query_string[k.to_sym] = v
+            end
           end
-          path
+          path += "?#{ Rack::Utils.build_nested_query(query_string) }" unless query_string.empty?
+          URI.escape('/' + path)
         end
       end
     end

@@ -9,6 +9,7 @@ class Cuba
       def call(env)
         request = Rack::Request.new(env)
         serve_request(request)
+        @app.call(env)
       end
 
       def serve_request(request)
@@ -23,7 +24,6 @@ class Cuba
             route_ids: route_info
           }
         end
-        @app.call(request)
       end
     end
   end
