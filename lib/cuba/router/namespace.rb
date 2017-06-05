@@ -1,7 +1,8 @@
 class Cuba
   module Router 
     class Namespace
-      
+      #include Matcheable
+
       attr_reader :content
 
       def initialize(name, module_name: nil, &block)
@@ -18,16 +19,15 @@ class Cuba
         @name.to_s.downcase
       end
 
-      def apply?(fragments, request)
-        fragments.first == name
-      end
-
-      def apply_to(route_info, fragments)
-        fragments.shift
-        array = route_info[:module_names] || []
-        array << module_name + '::'
-        route_info[:module_names] = array
-        route_info
+      def make_on(app)
+        route_proc = Proc.new do
+          app.with(module_names: ([ app.vars[:module_names] ] + [ module_name ]).compact.join('::')) do
+            @content.each do |route|
+              route.make_on(app)
+            end
+          end
+        end
+        app.send(:on, name, &route_proc)
       end
 
       def define_path_methods(controller, args={})

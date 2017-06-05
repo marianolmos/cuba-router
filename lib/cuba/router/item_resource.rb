@@ -15,17 +15,17 @@ class Cuba
       end
 
       def name
-        '*'
+        name_id.to_sym
       end
 
-      def apply?(fragments, request)
-        fragments.first
-      end
-
-      def apply_to(route_info, fragments)
-        route_info[:id] = fragments.shift
-        route_info[name_id.to_sym] = route_info[:id]
-        route_info
+      def make_on(app)
+        route_proc = Proc.new do |id|
+          app.define_singleton_method(name_id) { URI.unescape(id) }
+          @content.each do |route|
+            route.make_on(app)
+          end
+        end
+        app.send(:on, name, &route_proc)
       end
 
       def define_path_methods(controller, args={})

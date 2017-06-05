@@ -15,24 +15,21 @@ class Cuba
         @name.to_s.downcase
       end
 
-      def controller_method
-        (@controller_method || name).to_s.downcase.to_sym
-      end
-
-      def apply?(fragments, request)
-        if method_apply?(request)
-          if name.empty?
-            fragments.empty?
-          elsif fragments.size == 1
-            fragments.first == name# || name == '*'
+      def make_on(app)
+        route_proc = Proc.new do
+          app.on(app.send(@method)) do
+            controller = make_controller(app)
+            app.settings[:routes].each do |route|
+              route.define_path_methods(controller)
+            end
+            controller.send(controller_method)
           end
         end
+        app.send(:on, name, &route_proc)
       end
 
-      def apply_to(route_info, fragments)
-        fragments.shift unless name.empty?
-        route_info[:controller_method] = controller_method
-        route_info
+      def controller_method
+        (@controller_method || name).to_s.downcase.to_sym
       end
 
       def define_path_methods(controller, args={})
@@ -44,8 +41,30 @@ class Cuba
 
       private
 
-      def method_apply?(request)
-        request.request_method.downcase.to_sym == @method
+      def get_class(app)
+        original_modules = app.class.to_s.split('::')
+        searched_klass = ([app.vars[:module_names]] + [app.vars[:controller_name] + 'Controller']).compact.join('::')
+        klass = nil
+        begin
+          klass = Object.const_get(original_modules.join('::')).const_get(searched_klass)
+        rescue NameError => e
+        ensure
+          original_modules.pop
+        end until (original_modules.empty? || klass)
+        raise StandardError.new("#{searched_klass} Not found") unless klass
+        return klass
+      end
+
+      def make_controller(app)
+        klass = get_class(app)
+        controller = klass.new
+        # inyecto la app en la variable @app y redirecciono los metodos
+        controller.instance_variable_set(:@app, app)
+        controller.define_singleton_method(:method_missing) do |meth, *args, &blk|
+          super(meth, *args, &blk) unless @app.respond_to?(meth)
+          @app.send(meth, *args, &blk)
+        end
+        controller
       end
 
       def define_method_to_controller(controller, args)

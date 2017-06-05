@@ -20,18 +20,19 @@ class Cuba
         @name.to_s.downcase
       end
 
+      def make_on(app)
+        route_proc = Proc.new do
+          app.with controller_name: controller_name do
+            @content.each do |route|
+              route.make_on(app)
+            end
+          end
+        end
+        app.send(:on, name, &route_proc)
+      end
+
       def controller_name
         @controller_name || name.split('-').map(&:capitalize).join
-      end
-
-      def apply?(fragments, request)
-        name == fragments.first
-      end
-
-      def apply_to(route_info, fragments)
-        fragments.shift
-        route_info[:controller_class] = controller_name + 'Controller'
-        route_info
       end
 
       def define_path_methods(controller, args={})
