@@ -19,7 +19,7 @@ class Cuba
         @content << Namespace.new(name, module_name: module_name, &block)
       end
 
-      def resource(name, controller_name: nil, only: [:index, :create, :update, :delete, :show], &block)
+      def resource(name, controller_name: nil, only: [:index, :create, :update, :destroy, :show], &block)
         @content << Resource.new(name, controller_name: controller_name, only: only, &block)
       end
 

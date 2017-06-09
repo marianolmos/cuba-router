@@ -9,7 +9,7 @@ class Cuba
         @controller_name = controller_name
         @only = only
         @content = block_given? ? Container.load_routes(&block) : []
-        (only & [:show, :update, :delete]).each do |a_method|
+        (only & [:show, :update, :destroy]).each do |a_method|
           self.send(a_method)
         end
       end
@@ -45,7 +45,7 @@ class Cuba
       def singular_name
         id = @controller_name.gsub(/([A-Z])/, '_\1').downcase
         id[0] = ''
-        id.gsub(/s$/, '')
+        id.gsub(/ies$/, 'y').gsub(/s$/, '')
       end
 
       def show
@@ -63,9 +63,9 @@ class Cuba
         end
       end
 
-      def delete
+      def destroy
         @content += Container.load_routes do
-          delete('')
+          delete('', controller_method: :destroy)
         end
       end
 

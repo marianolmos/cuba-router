@@ -13,10 +13,17 @@ class Cuba
         settings[:routes] = Container.load_routes(&block)        
         define do
           settings[:routes].each do |route|
+            route.define_path_methods(self)
+          end
+          settings[:routes].each do |route|
             route.make_on(self)
           end
         end
       end
+    end
+
+    def redirect_to(path)
+      res.redirect path
     end
   end
 end

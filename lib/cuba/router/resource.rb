@@ -8,11 +8,11 @@ class Cuba
         @name = name
         @controller_name = controller_name
         @content = []
-        unless (only & [:show, :update, :delete]).empty?
-          @content += [ ItemResource.new(self.name, controller_name: self.controller_name, only: only, &block) ]
-        end
         (only & [:index, :create]).each do |a_method|
           self.send(a_method)
+        end
+        unless (only & [:show, :update, :delete]).empty?
+          @content += [ ItemResource.new(self.name, controller_name: self.controller_name, only: only, &block) ]
         end
       end
 
@@ -57,8 +57,8 @@ class Cuba
 
       def create
         @content += Container.load_routes do
-          post('', controller_method: :create)
           get('new', controller_method: :new)
+          post('', controller_method: :create)
         end
       end
 

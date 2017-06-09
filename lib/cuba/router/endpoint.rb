@@ -16,16 +16,17 @@ class Cuba
       end
 
       def make_on(app)
+        return unless app.send(@method)
         route_proc = Proc.new do
-          app.on(app.send(@method)) do
-            controller = make_controller(app)
-            app.settings[:routes].each do |route|
-              route.define_path_methods(controller)
-            end
-            controller.send(controller_method)
-          end
+          controller = make_controller(app)
+          puts "Calling #{controller.class.to_s}##{controller_method}"
+          controller.send(controller_method)
         end
-        app.send(:on, name, &route_proc)
+        if name.empty?
+          app.send(:on, app.root, &route_proc)
+        else
+          app.send(:on, name, &route_proc)
+        end
       end
 
       def controller_method
