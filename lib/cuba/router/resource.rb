@@ -59,6 +59,7 @@ class Cuba
         @content += Container.load_routes do
           get('new', controller_method: :new)
           post('', controller_method: :create)
+          post('new', controller_method: :create)
         end
       end
 

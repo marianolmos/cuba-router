@@ -59,7 +59,9 @@ class Cuba
           post('', controller_method: :update)
           put('', controller_method: :update)
           patch('', controller_method: :update)
+          post('edit', controller_method: :update)
           get('edit', controller_method: :edit)
+
         end
       end
 
