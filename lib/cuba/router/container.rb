@@ -43,8 +43,8 @@ class Cuba
         @content << Endpoint.new(path, method: :patch, controller_method: controller_method)
       end
 
-      def mount(klass_name)
-        @content << Mount.new(klass_name)
+      def mount(name, &block)
+        @content << Mount.new(name, &block)
       end
 
     end

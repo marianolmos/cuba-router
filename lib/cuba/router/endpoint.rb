@@ -18,9 +18,11 @@ class Cuba
       def make_on(app)
         return unless app.send(@method)
         route_proc = Proc.new do
-          controller = make_controller(app)
-          puts "Calling #{controller.class.to_s}##{controller_method}"
-          controller.send(controller_method)
+          app.send(:with, controller_method: controller_method) do
+            controller = make_controller(app)
+            puts "Calling #{controller.class.to_s}##{controller_method}"
+            controller.send(controller_method)
+          end
         end
         if name.empty?
           app.send(:on, app.root, &route_proc)

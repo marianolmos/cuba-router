@@ -2,12 +2,15 @@ class Cuba
   module Router 
     class Mount
 
-      def initialize(klass)
-        @klass = klass
+      def initialize(name, &block)
+        @name = name
+        @block = block
       end
 
       def make_on(app)
-        app.run @klass
+        app.send(:on, @name.downcase.to_s) do
+          app.instance_eval(&@block)
+        end
       end
 
       def define_path_methods(controller, args={})
